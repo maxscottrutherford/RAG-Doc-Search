@@ -21,7 +21,8 @@ class SearchResultItem(BaseModel):
 
 class SearchResponse(BaseModel):
     query: str
-    results: list[SearchResultItem]
+    answer: str
+    source_chunks: list[SearchResultItem]
 
 
 class DocumentUploadResponse(BaseModel):
