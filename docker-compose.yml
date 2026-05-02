@@ -1,0 +1,52 @@
+# Docker Compose stack for local development.
+#
+# PostgreSQL 15 + pgvector
+# ------------------------
+# pgvector is a PostgreSQL extension that adds a `vector` data type and index
+# types (e.g. IVFFlat, HNSW) so you can store embedding vectors in the database
+# and run similarity search (L2 distance, inner product, cosine) with standard SQL.
+# RAG pipelines use this to find document chunks whose embeddings are "closest"
+# to a query embedding, instead of shipping all vectors to a separate vector DB.
+#
+# This service uses the official pgvector image, which bundles the extension into
+# PostgreSQL so `CREATE EXTENSION vector` works out of the box.
+#
+# Volumes
+# -------
+# `postgres_data` mounts a named Docker volume on `/var/lib/postgresql/data` so
+# your database survives `docker compose down` (without `-v`). Remove the volume
+# only when you intentionally want a fresh database.
+#
+# Initialization
+# ---------------
+# `./init.sql` is mounted into `/docker-entrypoint-initdb.d/`. Postgres runs
+# scripts there once on first startup (empty data directory). It creates the
+# `vector` extension and the `documents` table used by the RAG API.
+#
+# Connect from the host (e.g. in .env DATABASE_URL):
+#   postgresql://rag:rag@localhost:5432/rag_docs
+#
+# Why vector(1536)?
+# -----------------
+# A `vector(N)` column stores a fixed-length array of N floating-point numbers
+# produced by an embedding model. N must match the model output size. 1536 is the
+# dimensionality of OpenAI's widely used `text-embedding-ada-002` embeddings and
+# the default size for `text-embedding-3-small` when you request 1536 dimensions.
+# If you switch embedding models, change N here and migrate existing rows.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: rag-doc-search-postgres
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: rag_docs
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+
+volumes:
+  postgres_data:
