@@ -19,10 +19,21 @@ class SearchResultItem(BaseModel):
     score: float | None = None
 
 
+class RagEvaluationBlock(BaseModel):
+    """LLM-as-judge scores persisted in ``evaluations`` (see ``app.services.evaluation``)."""
+
+    evaluation_id: int
+    relevance: int = Field(ge=1, le=5)
+    completeness: int = Field(ge=1, le=5)
+    groundedness: int = Field(ge=1, le=5)
+    notes: str | None = None
+
+
 class SearchResponse(BaseModel):
     query: str
     answer: str
     source_chunks: list[SearchResultItem]
+    evaluation: RagEvaluationBlock | None = None
 
 
 class DocumentUploadResponse(BaseModel):

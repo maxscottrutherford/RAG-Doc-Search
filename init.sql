@@ -33,3 +33,16 @@ CREATE TABLE IF NOT EXISTS documents (
     chunk_index INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- LLM-as-judge runs: query, answer, serialized chunks, and 1–5 scores per metric.
+CREATE TABLE IF NOT EXISTS evaluations (
+    id BIGSERIAL PRIMARY KEY,
+    query TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    chunks JSONB NOT NULL,
+    relevance SMALLINT NOT NULL CHECK (relevance BETWEEN 1 AND 5),
+    completeness SMALLINT NOT NULL CHECK (completeness BETWEEN 1 AND 5),
+    groundedness SMALLINT NOT NULL CHECK (groundedness BETWEEN 1 AND 5),
+    model_response JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

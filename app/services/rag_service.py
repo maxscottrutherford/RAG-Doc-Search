@@ -1,10 +1,15 @@
 """RAG retrieval and generation orchestration."""
 
+import logging
+
 from openai import OpenAI
 
 from app.core.config import Settings
-from app.models.schemas import SearchRequest, SearchResponse, SearchResultItem
+from app.models.schemas import RagEvaluationBlock, SearchRequest, SearchResponse, SearchResultItem
+from app.services.evaluation import evaluate_rag_output
 from app.services.search import SimilarChunk, search_similar_chunks
+
+logger = logging.getLogger(__name__)
 
 CHAT_MODEL = "gpt-4o"
 RAG_TOP_K = 5
@@ -77,6 +82,7 @@ class RAGService:
                     "Try uploading or ingesting documents, or rephrasing the question."
                 ),
                 source_chunks=[],
+                evaluation=None,
             )
 
         prompt = build_rag_prompt(chunks, query)
@@ -97,11 +103,31 @@ class RAGService:
             ],
         )
         answer = completion.choices[0].message.content or ""
+        answer_stripped = answer.strip()
+
+        evaluation: RagEvaluationBlock | None = None
+        try:
+            ev = evaluate_rag_output(
+                query,
+                source_chunks,
+                answer_stripped,
+                settings=self._settings,
+            )
+            evaluation = RagEvaluationBlock(
+                evaluation_id=ev.evaluation_id,
+                relevance=ev.scores.relevance,
+                completeness=ev.scores.completeness,
+                groundedness=ev.scores.groundedness,
+                notes=ev.scores.notes,
+            )
+        except Exception:
+            logger.exception("RAG LLM evaluation step failed; returning answer without scores")
 
         return SearchResponse(
             query=query,
-            answer=answer.strip(),
+            answer=answer_stripped,
             source_chunks=source_chunks,
+            evaluation=evaluation,
         )
 
 
