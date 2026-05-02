@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RAG Document Search</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>RAG Document Search</h1>
+      <p class="subtitle">Upload documents, then ask questions grounded in your corpus.</p>
+    </header>
+
+    <main>
+      <section class="panel" aria-labelledby="upload-heading">
+        <h2 id="upload-heading">Upload</h2>
+        <p class="hint">Accepts <code>.txt</code> or <code>.pdf</code>.</p>
+        <form id="upload-form" class="stack">
+          <label class="file-label">
+            <span class="file-label-text">Choose file</span>
+            <input
+              type="file"
+              id="upload-file"
+              name="file"
+              accept=".txt,.pdf,text/plain,application/pdf"
+              required
+            />
+          </label>
+          <button type="submit" class="btn primary">Upload &amp; index</button>
+        </form>
+        <div id="upload-status" class="status" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="search-heading">
+        <h2 id="search-heading">Search</h2>
+        <form id="search-form" class="stack">
+          <label for="query-input">Question</label>
+          <textarea
+            id="query-input"
+            name="query"
+            rows="3"
+            placeholder="Ask something answerable from your uploaded documents…"
+            required
+          ></textarea>
+          <button type="submit" class="btn primary">Search</button>
+        </form>
+        <div id="search-status" class="status" role="status" aria-live="polite"></div>
+        <div id="search-results" class="search-results hidden"></div>
+      </section>
+    </main>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

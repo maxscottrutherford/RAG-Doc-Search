@@ -37,12 +37,18 @@ app/services with real DB schema, embedding model IDs, and LangChain chains.
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.documents import router as documents_router
 from app.api.routes import router as api_router
 from app.core.config import get_settings
+
+# Directory for the demo UI (HTML/CSS/JS). Kept next to main.py for a single tree.
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
 @asynccontextmanager
@@ -58,6 +64,27 @@ app = FastAPI(
 )
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1/documents")
+
+
+@app.get("/")
+async def serve_index() -> FileResponse:
+    """Serve the single-page demo UI."""
+    return FileResponse(STATIC_DIR / "index.html")
+
+
+# Static file serving: Starlette's StaticFiles maps URL paths under ``/static`` to
+# files on disk. FastAPI/uvicorn read and stream those bytes with cache-friendly
+# headers. That is enough for **local testing** and small internal tools: zero
+# build step, same origin as the API so the browser can call ``/api/v1/...``
+# without CORS. In **production** you would usually put HTML/JS/CSS on a CDN or
+# behind nginx, use hashed asset names and long cache lifetimes, TLS, gzip/br,
+# and often a separate frontend host—serving arbitrary paths from the API
+# process is simpler but not how public sites are typically run.
+app.mount(
+    "/static",
+    StaticFiles(directory=STATIC_DIR),
+    name="static",
+)
 
 
 if __name__ == "__main__":
