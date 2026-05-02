@@ -40,6 +40,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.documents import router as documents_router
 from app.api.routes import router as api_router
 from app.core.config import get_settings
 
@@ -56,6 +57,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(documents_router, prefix="/api/v1/documents")
 
 
 if __name__ == "__main__":

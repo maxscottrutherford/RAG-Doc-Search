@@ -22,3 +22,8 @@ class SearchResultItem(BaseModel):
 class SearchResponse(BaseModel):
     query: str
     results: list[SearchResultItem]
+
+
+class DocumentUploadResponse(BaseModel):
+    filename: str
+    chunks_stored: int

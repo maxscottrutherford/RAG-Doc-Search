@@ -23,8 +23,11 @@
 # scripts there once on first startup (empty data directory). It creates the
 # `vector` extension and the `documents` table used by the RAG API.
 #
-# Connect from the host (e.g. in .env DATABASE_URL):
-#   postgresql://rag:rag@localhost:5432/rag_docs
+# Connect from the host (e.g. in .env DATABASE_URL). We map host port 5433 →
+# container 5432 so this stack does not fight a local PostgreSQL install that
+# often already listens on 5432 (same symptom: "password authentication failed"
+# for user rag while `docker compose exec postgres psql -U rag` works).
+#   postgresql://rag:rag@127.0.0.1:5433/rag_docs
 #
 # Why vector(1536)?
 # -----------------
@@ -43,7 +46,7 @@ services:
       POSTGRES_PASSWORD: rag
       POSTGRES_DB: rag_docs
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro

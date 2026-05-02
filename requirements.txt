@@ -1,8 +1,10 @@
 fastapi
+python-multipart
 uvicorn[standard]
 psycopg2-binary
 pgvector
 openai
 tiktoken
+PyMuPDF
 python-dotenv
 langchain
